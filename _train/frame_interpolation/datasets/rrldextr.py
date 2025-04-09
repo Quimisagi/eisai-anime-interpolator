@@ -1,6 +1,3 @@
-
-
-
 from _util.util_v0 import * ; import _util.util_v0 as util
 from _util.twodee_v0 import * ; import _util.twodee_v0 as u2d
 from _util.pytorch_v0 import * ; import _util.pytorch_v0 as utorch
@@ -25,16 +22,7 @@ class Dataset(torch.utils.data.Dataset):
 
         # read
         x = dk[bn]
-        use_flow = x['flows'] is not None
         imgs = torch.stack([i.resize(s).tensor() for i in x['images']])
-        if use_flow:
-            flows = uflow.flow_resize(
-                x['flows'],
-                sf,
-                mode='bilinear',
-            )
-        else:
-            flows = None
 
         # augment
         flip = False
@@ -44,24 +32,17 @@ class Dataset(torch.utils.data.Dataset):
             if np.random.rand()<0.5:
                 flip = True
                 imgs = imgs.flip(dims=(-1,))
-                if use_flow:
-                    flows = flows.flip(dims=(-1,))
-                    flows[:,1] *= -1
 
             # reverse sequence
             if np.random.rand()<0.5:
                 rev = True
                 imgs = imgs.flip(dims=(0,))
-                if use_flow:
-                    flows = flows.flip(dims=(0,))
         
         # package
         ans = {
             'bn': bn,
             'images': imgs,
         }
-        if use_flow:
-            ans['flows'] = flows
         if return_more:
             ans['flipped'] = flip
             ans['reversed'] = rev
